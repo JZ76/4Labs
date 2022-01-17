@@ -33,13 +33,14 @@
     //         countMrs++;
     //     }
     // });
+    // due to loading is async, we have to use promise here, that is each task must wait for previous task has done
     d3.csv(titaniccsv).then(function(data) {
         console.log(data.length)
-        for (var i = 0; i < data.length; i++) {
+        for (let i = 0; i < data.length; i++) {
             if (data[i].Sex === "male"){
-                countMale++;
+                countMale = countMale + 1;
             }else if (data[i].Sex === "female"){
-                countFemale++;
+                countFemale = countFemale + 1;
             }
             // have to use \ convert . to string meaning
             if (data[i].Name.toString().search(/Mr\./) !== -1){
@@ -48,12 +49,12 @@
                 countMrs++;
             }
         }
+    }).then(function () {
+        console.log("Male: " + countMale);
+        console.log("Female: " + countFemale);
+        console.log("Mr.: " + countMr);
+        console.log("Mrs.: " + countMrs);
     });
-
-    console.log("Male: " + countMale);
-    console.log("Female: " + countFemale);
-    console.log("Mr.: " + countMr);
-    console.log("Mrs.: " + countMrs);
 </script>
 
 <script>
@@ -66,27 +67,36 @@
     */
     var result = [0, 0, 0, 0]
 
-    d3.csv(heartfailurecsv, function(data) {
-        //console.log(data.age);
-        if (1 <= data.age && data.age <= 30){
-            result[0]++;
-        }else if (31 <= data.age && data.age <= 40){
-            result[1]++;
-        }else if (41 <= data.age && data.age <= 60){
-            result[2]++;
-        }else if (61 <= data.age && data.age <= 100){
-            result[3]++;
+    d3.csv(heartfailurecsv).then(function(data) {
+        for (let i = 0; i < data.length; i++) {
+            if (1 <= data[i].age && data[i].age <= 30) {
+                result[0]++;
+            } else if (31 <= data[i].age && data[i].age <= 40) {
+                result[1]++;
+            } else if (41 <= data[i].age && data[i].age <= 60) {
+                result[2]++;
+            } else if (61 <= data[i].age && data[i].age <= 100) {
+                result[3]++;
+            }
         }
+    }).then(function (){
+        var p = d3.select("body")
+                    .selectAll("p")
+                    .data(result)
+                    .enter()
+                    .append("p")
+                    .text(function (d, i) {
+                        if (i === 0){
+                            return "1-30 years old: " + d;
+                        }else if (i === 1) {
+                            return "31-40 years old: " + d;
+                        }else if (i === 2) {
+                            return "41-60 years old: " + d;
+                        }else if (i === 3) {
+                            return "61-100 years old: " + d;
+                        }
+                    });
     });
-
-    var p = d3.select("body")
-                .selectAll("p")
-                .data(result)
-                .enter()
-                .append("p")
-                .text(function (d, i) {
-                    return d;
-                });
 </script>
 </body>
 </html>
