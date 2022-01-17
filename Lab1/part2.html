@@ -1,0 +1,66 @@
+<!DOCTYPE html> <html lang="en">
+<head>
+    <script src='https://d3js.org/d3.v7.min.js'></script>
+    <title>D3Setup</title>
+</head>
+<body>
+<script>
+    // write your d3 code here..
+    //exercise 1
+    //d3.version: 7.3.0
+    console.log('d3.version:', d3.version);
+</script>
+
+<p>First paragraph</p>
+<p>Second paragraph</p>
+
+<script>
+    //exercise 2
+    //font-size need be described as percentage
+    d3.select("p").style("color", "red").style("font-size", "220%").style("font-family", "verdana").style("line-height", 5);
+</script>
+
+<style>
+    .test {
+    color: red
+    }
+</style>
+
+<p class="test">First paragraph</p>
+<p>Second paragraph</p>
+<p class="test">Third paragraph</p>
+
+<script>
+    d3.selectAll(".test").style('color','blue');
+</script>
+
+<span>Test</span>
+
+<script>
+    let newspan = d3.select("body").append('span');
+    newspan.text('hello');
+</script>
+
+
+<script>
+    //exercise 3
+    for (let i = 1; i < 11; i++){
+        let newspan = d3.select("body").append('div');
+        newspan.text(i);
+        if (i < 6){
+            newspan.style("color", "red");
+        }else {
+            newspan.style("color", "green");
+        }
+    }
+
+    //exercise 4
+    //select() will match the first one on the DOM tree
+    d3.select('div').text("start").style("color", "purple")
+
+    //exercise 5
+    d3.select("body").append("div").text("Hello World!").style("color", "green");
+</script>
+
+</body>
+</html>
