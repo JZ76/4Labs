@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SVG</title>
+</head>
+<body>
+<script src='https://d3js.org/d3.v7.min.js'></script>
+<script>
+    //Create SVG element
+    var svg = d3.select("body")
+                .append("svg")
+                .attr("width", 400)
+                .attr("height", 400)
+                .style("border", '1px solid green');
+    //Create line element inside SVG
+    //exercise 11
+    svg.append("line")
+        .attr("x1", 100)
+        .attr("y1", 100)
+        .attr("x2", 100)
+        .attr("y2", 200)
+        .attr("stroke", "blue")
+    svg.append("line")
+        .attr("x1", 200)
+        .attr("y1", 200)
+        .attr("x2", 100)
+        .attr("y2", 200)
+        .attr("stroke", "red")
+    svg.append("line")
+        .attr("x1", 200)
+        .attr("y1", 200)
+        .attr("x2", 200)
+        .attr("y2", 100)
+        .attr("stroke", "green")
+    svg.append("line")
+        .attr("x1", 200)
+        .attr("y1", 100)
+        .attr("x2", 100)
+        .attr("y2", 100)
+        .attr("stroke", "yellow")
+</script>
+
+<script>
+    //Create SVG element
+    var svg = d3.select("body")
+                .append("svg")
+                .attr("width", 400)
+                .attr("height", 400)
+                .style("border", '1px solid green');
+
+    //exercise 12
+    //exercise 12
+    d3.csv("/Lab1/part6.csv").then(function (data) {
+        for (let i = 0; i < data.length; i++) {
+            if (data[i].shape === "rect") {
+                var tempSvg = svg.append("rect")
+            } else if (data[i].shape === "circle") {
+                var tempSvg = svg.append("circle")
+            } else if (data[i].shape === "ellipse") {
+                var tempSvg = svg.append("ellipse")
+            } else if (data[i].shape === "line") {
+                var tempSvg = svg.append("line")
+            }
+
+            let tempString = data[i].position.split(",");
+
+            for (let j = 0; j < tempString.length - 1; j += 2) {
+                tempSvg = tempSvg.attr(tempString[j], parseInt(tempString[j + 1]));
+            }
+
+            tempString = data[i].color.split(",");
+
+            for (let j = 0; j < tempString.length - 1; j += 2) {
+                tempSvg = tempSvg.attr(tempString[j], tempString[j + 1]);
+            }
+        }
+    });
+</script>
+</body>
+</html>
