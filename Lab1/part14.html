@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Colors</title>
+</head>
+<body>
+<script type='text/javascript' src='https://d3js.org/d3.v7.min.js'></script>
+<style>
+    div {
+        display: inline-block;
+        width : 10px;
+        height : 10px;
+        margin: 1px;
+        padding: 10px;
+    }
+</style>
+<script>
+    function makeBarchart(csv){
+        let heartfailurecsv = csv;
+
+        const width = 500;
+        const barHeight = 20;
+        const margin = 1;
+        var result = [0, 0, 0, 0]
+
+        d3.csv(heartfailurecsv).then(function(data) {
+            for (let i = 0; i < data.length; i++) {
+                if (1 <= data[i].age && data[i].age <= 30) {
+                    result[0]++;
+                } else if (31 <= data[i].age && data[i].age <= 40) {
+                    result[1]++;
+                } else if (41 <= data[i].age && data[i].age <= 60) {
+                    result[2]++;
+                } else if (61 <= data[i].age && data[i].age <= 100) {
+                    result[3]++;
+                }
+            }
+        }).then(function (){
+            var scale = d3.scaleLinear()
+                .domain([d3.min(result), d3.max(result)])
+                .range([50, 500]);
+            var svg = d3.select("body")
+                .append("svg")
+                .attr("width", width)
+                .attr("height", barHeight * result.length);
+            var g = svg.selectAll("g")
+                .data(result)
+                .enter()
+                .append("g")
+                .attr("transform", function (d, i) {
+                    return "translate(0," + i * barHeight + ")";
+                });
+            //exercise 28
+            var myColor5 = d3.scaleSequential()
+                             .domain([d3.min(result), d3.max(result)])
+                             .interpolator(d3.interpolatePuRd);
+            g.append("rect")
+                .attr("width", function (d) {
+                    return scale(d);
+                })
+                .attr('fill', function (d){
+                    return myColor5(d);
+                })
+                .attr("height", barHeight - margin)
+            g.append("text")
+                .attr("x", function (d) { return (scale(d)); })
+                .attr("y", barHeight / 2)
+                .attr("dy", ".35em")
+                .style('text-anchor', 'end')
+                .text(function (d) { return d; });
+        });
+    }
+    makeBarchart('https://raw.githubusercontent.com/akmand/datasets/master/heart_failure.csv');
+</script>
+
+<script>
+    function drawChartOriginal(data) {
+        // Set Dimensions
+        const xSize = 600;
+        const ySize = 600;
+        const margin = 40;
+        const xMax = xSize - margin * 2;
+        const yMax = ySize - margin * 2;
+
+        // Get the 'limits' of the data - the full extent (mins and max)
+        // so the plotted data fits perfectly
+        const xExtent = d3.extent(data, d => {
+            return d.x
+        });
+        const yExtent = d3.extent(data, d => {
+            return d.y
+        });
+
+        // Append SVG Object to the Page const
+        svg = d3.select("body")
+            .append("svg")
+            .attr('width', xSize)
+            .attr('height', ySize)
+            .append("g")
+            .attr("transform", "translate(" + margin + "," + margin + ")");
+
+        // X Axis
+        const x = d3.scaleLinear()
+            .domain([xExtent[0], xExtent[1]])
+            .range([0, xMax]);
+        // bottom
+        svg.append("g")
+            .attr("transform", "translate(0," + yMax + ")")
+            .call(d3.axisBottom(x))
+            .attr('color', 'green');
+        // make bottom axis green
+        // top
+        svg.append("g")
+            .call(d3.axisTop(x));
+        // Y Axis
+        const y = d3.scaleLinear()
+            .domain([yExtent[0], yExtent[1]])
+            .range([yMax, 0]);
+        // left y axis
+        svg.append("g")
+            .call(d3.axisLeft(y));
+        // right y axis
+        svg.append("g")
+            .attr("transform", `translate(${yMax},0)`)
+            .call(d3.axisRight(y));
+        // Add the line
+        svg.append("path")
+            .datum(data)
+            .attr("fill", "none")
+            .attr("stroke", "steelblue")
+            .attr("stroke-width", 1.5)
+            .attr("d", d3.line()
+                .x(function (d) {
+                    return x(d.x);
+                })
+                .y(function (d) {
+                    return y(d.y);
+                }));
+        //exercise 29
+        var myColor2 = d3.scaleSequential()
+                         .domain([yExtent[0], yExtent[1]])
+                         .interpolator(d3.interpolateViridis);
+        svg.selectAll("dot")
+            .data(data)
+            .enter()
+            .append("circle")
+            .attr("cx", function (d) {
+                return x(d.x)
+            })
+            .attr("cy", function (d) {
+                return y(d.y)
+            })
+            .attr("r", 5)
+            .style("fill", function (d) {
+                return myColor2(d.y);
+            });
+    }
+
+    var data = [];
+    let heartfailurecsv = 'https://raw.githubusercontent.com/akmand/datasets/master/heart_failure.csv';
+    d3.csv(heartfailurecsv).then(function(data) {
+        for (let i = 0; i < data.length; i++) {
+            this.data.push({x : i, y : data[i].age});
+        }
+    }).then(function (){
+        drawChartOriginal(this.data);
+    });
+</script>
+</body>
+</html>

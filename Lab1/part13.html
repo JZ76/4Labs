@@ -193,6 +193,7 @@
                 return y(d.y)
             })
             .attr("dx", "0.5em")
+            .attr("dy", "-0.5em")
             .attr("stroke", "teal")
             .attr("font-size", "12px")
             .style('text-anchor', 'end')
@@ -240,7 +241,7 @@
             this.data1.push({x: i , y: Math.atan(6.2 * i / 100)});
         }
     }).then(function (){
-        drawChart(this.data2,data1);
+        drawChart(this.data2,this.data1);
     });
 </script>
 </body>
