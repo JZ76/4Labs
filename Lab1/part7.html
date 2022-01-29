@@ -35,20 +35,29 @@
         }
     }).then(function (){
         var graph = d3.select("body")
-            .append("svg")
-            .attr("width", width)
-            .attr("height", barHeight * result.length);
+                        .append("svg")
+                        .attr("width", width)
+                        .attr("height", barHeight * result.length);
 
         var bar = graph.selectAll("g")
-            .data(result)
-            .enter()
-            .append("g")
-            .attr("transform", function(d, i) { return "translate(0," + i * barHeight + ")"; });
+                        .data(result)
+                        .enter()
+                        .append("g")
+                        .attr("transform", function(d, i) {
+                            // each bar has an offset value depends on the index
+                            return "translate(0," + i * barHeight + ")";
+                        });
+        // rect will be directly appended on a g element
         bar.append("rect")
-            .attr("width", function(d) { return d * scaleFactor; })
+            .attr("width", function(d) {
+                // the width of each bar depends on the value of data
+                return d * scaleFactor;
+            })
+            // -1 means padding
             .attr("height", barHeight - 1)
             //exercise 15
-            .attr("fill", function (d, i){
+            .attr("fill", function (d){
+                // threshold is 100
                 if (d > 100){
                     return "red";
                 }else {
@@ -56,12 +65,19 @@
                 }
             });
         bar.append("text")
-            .attr("x", function(d) { return d * scaleFactor; })
+            .attr("x", function(d) {
+                // same as rect's width
+                return d * scaleFactor;
+            })
+            // in the middle of the bar
             .attr("y", barHeight / 2)
+            // offset 0.35em to bottom
+            // if font is 16, 1.5em will be 24px
             .attr("dy", ".35em")
-            .text(function(d) { return d; });
+            .text(function(d) {
+                return d;
+            });
     });
-
 </script>
 </body>
 </html>

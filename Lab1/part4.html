@@ -15,13 +15,24 @@
                 .enter()
                 .append('span')
                 .style('color', function(d) {
-                    if (typeof d === typeof 0) {
+                    if (typeof d === typeof 0) { /*
+                                                    typeof can return basic type
+                                                    such as Object Date Array String Number Boolean Null Undefined
+                                                    Null doesn't have memory address, but undefined has
+                                                    null === undefined  // false
+                                                    null == undefined  // true
+                                                    the difference between == and === is == will convert data type if
+                                                    they are not the same
+                                                    NaN === NaN  // true
+                                                    NaN == NaN  //true
+                                                    because this is defined by ECMA-262
+                                                 */
                         return "green";
                     } else if (typeof d === typeof 'a') {
                         return "blue";
                     }
                 })
-                .text(function (d, i) {
+                .text(function (d) {
                     return d;
                 });
 </script>
@@ -34,7 +45,7 @@
     var p = d3.select("body")
                 .selectAll("p")
                 .data(myData)
-                .text(function (d, i) {
+                .text(function (d) {
                     return d;
                 })
                 .exit()

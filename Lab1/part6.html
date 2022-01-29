@@ -51,26 +51,30 @@
 
     //exercise 12
     //exercise 13
+    /*
+        shape,dimensions,position,color
+        rect,4,"x,0,y,0,width,100,height,100","fill,green"
+        circle,3,"cx,250,cy,50,r,50",
+     */
     d3.csv("/Lab1/part6.csv").then(function (data) {
+        // iterate each line
         for (let i = 0; i < data.length; i++) {
-            if (data[i].shape === "rect") {
-                var tempSvg = svg.append("rect")
-            } else if (data[i].shape === "circle") {
-                var tempSvg = svg.append("circle")
-            } else if (data[i].shape === "ellipse") {
-                var tempSvg = svg.append("ellipse")
-            } else if (data[i].shape === "line") {
-                var tempSvg = svg.append("line")
-            }
+            // append shape first, shape's name from csv file, no input checking
+            // have to store this middle variable so that can add attr later
+            var tempSvg = svg.append(data[i].shape)
 
+            // get attr data first
             let tempString = data[i].position.split(",");
 
+            // since the dimensions is serialized in pairs, here we just directly put into the attr() method
             for (let j = 0; j < tempString.length - 1; j += 2) {
                 tempSvg = tempSvg.attr(tempString[j], parseInt(tempString[j + 1]));
             }
 
+            // get color data
             tempString = data[i].color.split(",");
 
+            // the same as before
             for (let j = 0; j < tempString.length - 1; j += 2) {
                 tempSvg = tempSvg.attr(tempString[j], tempString[j + 1]);
             }

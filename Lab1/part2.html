@@ -5,7 +5,6 @@
 </head>
 <body>
 <script>
-    // write your d3 code here..
     //exercise 1
     //d3.version: 7.3.0
     console.log('d3.version:', d3.version);
@@ -16,8 +15,11 @@
 
 <script>
     //exercise 2
-    //font-size need be described as percentage
-    d3.select("p").style("color", "red").style("font-size", "220%").style("font-family", "verdana").style("line-height", 5);
+    d3.select("p")
+      .style("color", "red")
+      .style("font-size", "220%") //font-size need be described as percentage
+      .style("font-family", "verdana")
+      .style("line-height", 5);
 </script>
 
 <style>
@@ -31,22 +33,27 @@
 <p class="test">Third paragraph</p>
 
 <script>
-    d3.selectAll(".test").style('color','blue');
+    d3.selectAll(".test")
+      .style('color','blue');
 </script>
 
 <span>Test</span>
 
 <script>
-    let newspan = d3.select("body").append('span');
+    let newspan = d3.select("body")
+                    .append('span');
     newspan.text('hello');
 </script>
 
-
 <script>
     //exercise 3
+    /*
+        DOM is an API based on tree structure
+     */
     for (let i = 1; i < 11; i++){
-        let newspan = d3.select("body").append('div');
-        newspan.text(i);
+        let newspan = d3.select("body")
+                        .append('div')
+                        .text(i);
         if (i < 6){
             newspan.style("color", "red");
         }else {
@@ -56,10 +63,15 @@
 
     //exercise 4
     //select() will match the first one on the DOM tree
-    d3.select('div').text("start").style("color", "purple")
+    d3.select('div')
+      .text("start")
+      .style("color", "purple")
 
     //exercise 5
-    d3.select("body").append("div").text("Hello World!").style("color", "green");
+    d3.select("body")
+      .append("div")
+      .text("Hello World!")
+      .style("color", "green");
 </script>
 
 </body>
