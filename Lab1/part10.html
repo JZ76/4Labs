@@ -37,31 +37,39 @@
                 .append("svg")
                 .attr("width", width1)
                 .attr("height", height1);
-
+    // scale 0-30 to 0-300
     var xscale = d3.scaleLinear()
                     .domain([0, d3.max(data1)])
                     .range([0, width1 - 100]);
+    // scale 0-30 to 0-150
     var yscale = d3.scaleLinear()
                     .domain([0, d3.max(data1)])
                     .range([height1/2, 0]);
 
     var x_axis = d3.axisBottom()
                     .scale(xscale);
+    // use same scale as axis at bottom
     var xTop_axis = d3.axisTop()
                     .scale(xscale);
     var y_axis = d3.axisLeft()
                     .scale(yscale);
+    // use same scale as axis at left
     var yRight_axis = d3.axisRight()
                     .scale(yscale);
 
     svg.append("g")
         .attr("transform", "translate(50, 20)")
         .call(y_axis);
+    // due to x-axis is 300 in width, and the body has 400 in width whilst y-axis-left has used 50 width
+    // so y-axis-right should use another 50, that is 50 + 50 + 300 = 400
     svg.append("g")
         .attr("transform", "translate(" + (width1 - 50) + ", 20)")
         .style("color", "blue")
         .call(yRight_axis);
 
+    // because y-axis offset 20 in height direction
+    // x-axis should also offset 20 in height
+    // and width direction remain 50
     var xAxisTranslate = height1/2 + 20;
     svg.append("g")
         .attr("transform", "translate(50, " + xAxisTranslate +")")
@@ -79,7 +87,7 @@
 
     var result = [0, 0, 0, 0]
     var ticks = ["1-30", "31-40","41-60", "61-100"]
-
+    // copy the code from previous
     d3.csv(heartfailurecsv).then(function(data) {
         for (let i = 0; i < data.length; i++) {
             if (1 <= data[i].age && data[i].age <= 30) {
@@ -101,33 +109,49 @@
                     .attr("width", width)
                     .attr("height", height);
 
+        // I want the x-axis has some extra width, so plus 10 here
         var xscale = d3.scaleLinear()
-                        .domain([0, d3.max(result)+10])
+                        .domain([0, d3.max(result) + 10])
                         .range([0, width - 100]);
+        // because we classified data into 4 bins, so I use Band scale here
+        // each band is a bin, so 4 band in total
         var yscale = d3.scaleBand()
-                        .domain([1,2,3,4])
-                        .range([height/2,0]);
+                        .domain([1, 2, 3, 4])
+                        .range([height/2, 0]);
 
+        // create x-axis and y-axis
         var x_axis = d3.axisBottom()
                         .scale(xscale);
         var y_axis = d3.axisLeft()
                         .scale(yscale);
 
+        // I replace the original text to more meaningful text
         svg.append("g")
             .attr("transform", "translate(50, 10)")
-            .call(y_axis.tickFormat(function(d, i) { return ticks[i];}));
+            .call(y_axis.tickFormat(function(d, i) {
+                return ticks[i];
+            }));
         var xAxisTranslate = height / 2 + 10;
         svg.append("g")
             .attr("transform", "translate(50, " + xAxisTranslate +")")
             .call(x_axis)
 
-        var tempSvg = svg.selectAll("rect")
+        // finally we can create bars
+        svg.selectAll("rect")
             .data(result)
             .enter()
             .append("rect")
             .attr("x", 50)
-            .attr("y", function (d, i) { return i * 50 + 25})
-            .attr("width", function (d) { return xscale(d)})
+            .attr("y", function (d, i) {
+                // there are three gaps in total, and two padding, four bars
+                // each gap has 30, one padding has 25, and bar is 20
+                // this corresponding to the y-axis
+                return i * 50 + 25;
+            })
+            .attr("width", function (d) {
+                // using scale to scale the data, and the output is the width of the bar
+                return xscale(d);
+            })
             .attr("height", 20);
     });
 </script>

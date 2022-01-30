@@ -40,9 +40,14 @@
     //exercise 16
     g.append("rect")
         .attr("x", function(d, i) {
-            return i * 100 + 32.5;
+            // x of the centre of the circle is 100 and width of the rect is 30
+            // so if we want the rect shares a same centre with the circle
+            // 100 + 50 - 30 / 2
+            return i * 100 + 35;
         })
         .attr("y", function(d, i) {
+            // y of the centre of the circle is 100 and height of the rect is 30
+            // we have to put rect at 100 - 30 / 2
             return 85;
         })
         .attr("width", function(d) {
@@ -62,6 +67,7 @@
         .attr("stroke", "teal")
         .attr("font-size", "12px")
         .attr("font-family", "sans-serif")
+        .attr("dx", ".25em")
         .text(function(d) {
             return d;
         });

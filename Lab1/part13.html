@@ -8,15 +8,12 @@
 <script src='https://d3js.org/d3.v7.min.js'></script>
 <script>
     function drawChartOriginal(data) {
-        // Set Dimensions
         const xSize = 600;
         const ySize = 600;
         const margin = 40;
         const xMax = xSize - margin * 2;
         const yMax = ySize - margin * 2;
 
-        // Get the 'limits' of the data - the full extent (mins and max)
-        // so the plotted data fits perfectly
         const xExtent = d3.extent(data, d => {
             return d.x
         });
@@ -24,7 +21,6 @@
             return d.y
         });
 
-        // Append SVG Object to the Page const
         svg = d3.select("body")
             .append("svg")
             .attr('width', xSize)
@@ -32,31 +28,29 @@
             .append("g")
             .attr("transform", "translate(" + margin + "," + margin + ")");
 
-        // X Axis
         const x = d3.scaleLinear()
             .domain([xExtent[0], xExtent[1]])
             .range([0, xMax]);
-        // bottom
+
         svg.append("g")
             .attr("transform", "translate(0," + yMax + ")")
             .call(d3.axisBottom(x))
             .attr('color', 'green');
-        // make bottom axis green
-        // top
+
         svg.append("g")
             .call(d3.axisTop(x));
-        // Y Axis
+
         const y = d3.scaleLinear()
             .domain([yExtent[0], yExtent[1]])
             .range([yMax, 0]);
-        // left y axis
+
         svg.append("g")
             .call(d3.axisLeft(y));
-        // right y axis
+
         svg.append("g")
             .attr("transform", `translate(${yMax},0)`)
             .call(d3.axisRight(y));
-        // Add the line
+
         svg.append("path")
             .datum(data)
             .attr("fill", "none")
@@ -86,7 +80,6 @@
 
     var data = [];
 
-    //exercise 23
     let heartfailurecsv = 'https://raw.githubusercontent.com/akmand/datasets/master/heart_failure.csv';
     d3.csv(heartfailurecsv).then(function(data) {
         for (let i = 0; i < data.length; i++) {
@@ -99,15 +92,12 @@
 
 <script>
     function drawChart(data1, data2) {
-        // Set Dimensions
         const xSize = 600;
         const ySize = 600;
         const margin = 40;
         const xMax = xSize - margin * 2;
         const yMax = ySize - margin * 2;
 
-        // Get the 'limits' of the data - the full extent (mins and max)
-        // so the plotted data fits perfectly
         const xExtent1 = d3.extent(data1, d => {
             return d.x
         });
@@ -120,7 +110,7 @@
         const yExtent2 = d3.extent(data2, d => {
             return d.y
         });
-        // Append SVG Object to the Page const
+
         svg = d3.select("body")
             .append("svg")
             .attr('width', xSize)
@@ -131,31 +121,29 @@
         const xExtent = [Math.min(xExtent1[0], xExtent2[0]), Math.max(xExtent1[1], xExtent2[1])];
         const yExtent = [Math.min(yExtent1[0], yExtent2[0]), Math.max(yExtent1[1], yExtent2[1])];
 
-        // X Axis
         const x = d3.scaleLinear()
             .domain([xExtent[0], xExtent[1]])
             .range([0, xMax]);
-        // bottom
+
         svg.append("g")
             .attr("transform", "translate(0," + yMax + ")")
             .call(d3.axisBottom(x))
             .attr('color', 'green');
-        // make bottom axis green
-        // top
+
         svg.append("g")
             .call(d3.axisTop(x));
-        // Y Axis
+
         const y = d3.scaleLinear()
             .domain([yExtent[0], yExtent[1]])
             .range([yMax, 0]);
-        // left y axis
+
         svg.append("g")
             .call(d3.axisLeft(y));
-        // right y axis
+
         svg.append("g")
             .attr("transform", `translate(${yMax},0)`)
             .call(d3.axisRight(y));
-        // Add the line
+
         //exercise 26
         svg.append("path")
             .datum(data1)
@@ -183,7 +171,7 @@
             .style("fill", "red")
         //exercise 27
         svg.selectAll("text")
-            .data(data1)
+            .data(data1) // add data first
             .enter()
             .append("text")
             .attr("x", function (d) {
@@ -193,12 +181,12 @@
                 return y(d.y)
             })
             .attr("dx", "0.5em")
-            .attr("dy", "-0.5em")
+            .attr("dy", "-0.5em") // shown on the top of points
             .attr("stroke", "teal")
             .attr("font-size", "12px")
             .style('text-anchor', 'end')
             .text(function (d, i) {
-                if (i % 5 === 0)
+                if (i % 5 === 0) // only show some data
                     return d.y;
             });
 
@@ -215,7 +203,7 @@
                     return y(d.y)
                 }));
         svg.selectAll("dot")
-            .data(data2)
+            .data(data2) // has to add data first, since we append a new type
             .enter()
             .append("rect")
             .attr("x", function (d) {

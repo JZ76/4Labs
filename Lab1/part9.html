@@ -23,6 +23,7 @@
         const margin = 1;
         var result = [0, 0, 0, 0]
         //exercise 18
+        // copy most of the code from previous exercise
         d3.csv(heartfailurecsv).then(function(data) {
             for (let i = 0; i < data.length; i++) {
                 if (1 <= data[i].age && data[i].age <= 30) {
@@ -56,6 +57,7 @@
                 })
                 //exercise 17
                 .attr('fill', function (d){
+                    // return different color depends on the input value
                     if (d <= 100){
                         return "green";
                     }else if (d >= 500){

@@ -23,6 +23,7 @@
     //exercise 14
     d3.csv(heartfailurecsv).then(function(data) {
         for (let i = 0; i < data.length; i++) {
+            // count how many people for each age range
             if (1 <= data[i].age && data[i].age <= 30) {
                 result[0]++;
             } else if (31 <= data[i].age && data[i].age <= 40) {

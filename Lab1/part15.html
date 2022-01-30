@@ -10,6 +10,12 @@
     var data = [2, 4, 8, 10];
     var pie = d3.pie();
     console.log(pie(data));
+    /*
+        0: {data: 2, index: 3, value: 2, startAngle: 5.759586531581287, endAngle: 6.283185307179586, …}
+        1: {data: 4, index: 2, value: 4, startAngle: 4.71238898038469, endAngle: 5.759586531581287, …}
+        2: {data: 8, index: 1, value: 8, startAngle: 2.617993877991494, endAngle: 4.71238898038469, …}
+        3: {data: 10, index: 0, value: 10, startAngle: 0, endAngle: 2.617993877991494, …}
+     */
 </script>
 <!--<script>-->
 <!--    //exercise 30-->
@@ -54,6 +60,7 @@
     const margin = 40;
     const xMax = xSize - margin*2;
     const yMax = ySize - margin*2;
+
     // Append SVG Object to the Page
     const svg = d3.select("body")
         .append("svg")
@@ -61,7 +68,9 @@
         .attr('height', ySize )
         .append("g")
         .attr("transform","translate(" + xSize/2 + "," + ySize/2 + ")");
+
     const radius = Math.min(xSize, ySize) / 2;
+
     var color = d3.scaleOrdinal(['#4daf4a','#377eb8','#ff7f00','#984ea3','#e41a1c']);
     // Generate the pie
     var pie = d3.pie();
@@ -69,24 +78,32 @@
     var arc = d3.arc()
         .innerRadius(0)
         .outerRadius(radius);
+
     //Generate groups
     var arcs = svg.selectAll("arc")
         .data(pie(data))
         .enter()
         .append("g")
         .attr("class", "arc");
+
     //Draw arc paths
     arcs.append("path")
         .attr("fill", function(d, i) {
             return color(i);
         })
         .attr("d", arc);
+
     //exercise 31
+    // because we append text on arcs variables which already got data, so we don't have to add data
     arcs.append("text")
         .attr("transform", function(d) {
+            // arc.centroid(d) this method return a coordinate of centre point, and is separated by comma
+            // so can be directly used into translate function
             return "translate(" + arc.centroid(d) + ")";
         })
         .text(function(d) {
+            // due to the data returned by pie() become an array of tuples
+            // have to manually get the actual value
             return d.data;
         });
 </script>
