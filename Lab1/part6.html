@@ -61,7 +61,7 @@
         for (let i = 0; i < data.length; i++) {
             // append shape first, shape's name from csv file, no input checking
             // have to store this middle variable so that can add attr later
-            var tempSvg = svg.append(data[i].shape)
+            var tempSvg = svg.append(data[i].shape)  // let
 
             // get attr data first
             let tempString = data[i].position.split(",");
