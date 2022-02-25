@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>D3 Transitions</title>
+</head>
+<body>
+<script type='text/javascript' src='https://d3js.org/d3.v7.min.js'></script>
+<script>
+    d3.select('body')
+        .append("div")
+        .style('width', '100px')
+        .style('height', '100px')
+        .style('background-color', 'blue')
+        .style('transform', 'scale(1.0)')
+        .transition()
+        .ease( d3.easeBounce )
+        .duration(1000)
+        .style("background-color", "red")
+        .style('transform', 'scale(0.5)')
+    // exercise 9
+    // literally copy the code from above
+    d3.select('body')
+        .append("div")
+        .style('width', '100px')
+        .style('height', '100px')
+        .style('background-color', 'blue')
+        .style('transform', 'scale(1.0)')
+        .transition()
+        .ease( d3.easeExp )
+        .duration(1000)
+        .style("background-color", "red")
+        .style('transform', 'scale(0.5)')
+    d3.select('body')
+        .append("div")
+        .style('width', '100px')
+        .style('height', '100px')
+        .style('background-color', 'blue')
+        .style('transform', 'scale(1.0)')
+        .transition()
+        .ease( d3.easeSin )
+        .duration(1000)
+        .style("background-color", "red")
+        .style('transform', 'scale(0.5)');
+    //exercise 10
+    // make a circle first
+    d3.select('body')
+        .append("svg")
+        .append("circle")
+        .attr("cx", 50)
+        .attr("cy", 50)
+        .attr("r", 25)
+        .style("fill", "purple");
+    // add mouseover and mouseout function
+    d3.select("circle")
+        .on("mouseover", function(){
+            d3.select(this)
+                .transition()
+                .ease( d3.easeExp )
+                .duration(1000)
+                .attr("r", 35);
+        })
+        .on("mouseout", function(){
+            d3.select(this)
+                .transition()
+                .ease( d3.easeExp )
+                .duration(1000)
+                .attr("r", 25);
+        });
+    // exercise 11
+    d3.select("svg")
+        .append("text")
+        .attr("x", 10)
+        .attr("y", 120)
+        .text("OOOOOOOOO");
+    d3.select("text")
+        .on("mouseover", function(){
+            d3.select(this)
+                .transition()
+                .ease( d3.easeExp )
+                .duration(1000)
+                .style("fill", "red")
+                .attr("font-size", "20px");
+        })
+        .on("mouseout", function(){
+            d3.select(this)
+                .transition()
+                .ease( d3.easeExp )
+                .duration(1000)
+                .style("fill", "black")
+                .attr("font-size", "16px");
+        });
+</script>
+</body>
+</html>

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Changing Data and Transitioning</title>
+</head>
+<body>
+<script type='text/javascript' src='https://d3js.org/d3.v7.min.js'></script>
+<!-- Add buttons -->
+<button onclick="update(data1)">Variable 1</button>
+<button onclick="update(data2)">Variable 2</button>
+<script>
+    // exercise 23
+    var data2 = [];
+    var data1 = [];
+    // create 2 data_set
+    let heartfailurecsv = 'https://raw.githubusercontent.com/akmand/datasets/master/heart_failure.csv';
+    d3.csv(heartfailurecsv).then(function(data) {
+        for (let i = 0; i < data.length; i++) {
+            // used age data again
+            this.data2.push({x : i, y : data[i].age});
+        }
+        // generate same number of point as rows in csv file
+        for (let i = 0; i < data.length; i++) {
+            // used atan function
+            this.data1.push({x: i , y: Math.atan(6.2 * i / 100)});
+        }
+    })
+    // set the dimensions and margins of the graph
+    const margin = {top: 30, right: 30, bottom: 50, left: 50};
+    const width = 500 - margin.left - margin.right;
+    const height = 500 - margin.top - margin.bottom;
+    // append the svg object to the body of the page
+    var svg = d3.select('body')
+        .append('div')
+        .append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+        .append("g")
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+    // A function that create / update the plot for a given variable:
+    function update(data) {
+        const xExtent = d3.extent(data, d => {
+            return d.x;
+        });
+        const yExtent = d3.extent(data, d => {
+            return d.y;
+        });
+        d3.selectAll('.myaxis')
+            .remove();
+        // X axis
+        var x = d3.scaleLinear()
+            .domain([xExtent[0], xExtent[1]])
+            .range([0, width]);
+        svg.append("g")
+            .attr("class", "myaxis")
+            .attr("transform", "translate(0," + height + ")")
+            .call(d3.axisBottom(x));
+        svg.append("g")
+            .attr("class", "myaxis")
+            .call(d3.axisTop(x));
+
+        // Add Y axis
+        var y = d3.scaleLinear()
+            .domain([yExtent[0], yExtent[1]])
+            .range([height, 0]);
+        svg.append("g")
+            .attr("class", "myaxis")
+            .call(d3.axisLeft(y));
+        svg.append("g")
+            .attr("class", "myaxis")
+            .attr("transform", "translate(" + width + ", 0)")
+            .call(d3.axisRight(y));
+
+        // cannot make path transition, due to the axis is also belong to path
+        // this will lead to glitches
+        d3.selectAll('.lines')
+            .remove();
+        svg.append("path")
+            .datum(data)
+            .transition()
+            .duration(1000)
+            .attr("class", "lines")
+            .attr("fill", "none")
+            .attr("stroke", "steelblue")
+            .attr("stroke-width", 1.5)
+            .attr("d", d3.line()
+                .x(function (d) {
+                    return x(d.x);
+                })
+                .y(function (d) {
+                    return y(d.y);
+                }));
+
+        var myColor2 = d3.scaleSequential()
+            .domain([yExtent[0], yExtent[1]])
+            .interpolator(d3.interpolateViridis);
+        // make dots transition
+        var d = svg.selectAll("circle")
+            .data(data);
+        d.exit()
+            .remove();
+        d.enter()
+            .append("circle")
+            .merge(d)
+            .transition()
+            .duration(1000)
+            .attr("cx", function (d) {
+                return x(d.x)
+            })
+            .attr("cy", function (d) {
+                return y(d.y)
+            })
+            .attr("r", 5)
+            .style("fill", function (d) {
+                return myColor2(d.y);
+            });
+    }
+
+    // Initialize the plot with the first dataset
+    update(data1);
+</script>
+</body>
+</html>

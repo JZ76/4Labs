@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>D3 Transitions</title>
+</head>
+<body>
+<script type='text/javascript' src='https://d3js.org/d3.v7.min.js'></script>
+<script>
+    d3.select('body')
+        .append("div")
+        .style('width', '100px')
+        .style('height', '100px')
+        .style('background-color', 'blue');
+    // exercise 8
+    d3.select("div")
+        // can write like this, or create a new function and pass to here
+        .on("mouseover", function(){
+            // did just like previous task
+            d3.select(this)
+                .transition()
+                .duration(1000)
+                .style("background-color", "red")
+        })
+        .on("mouseout", function(){
+            d3.select(this)
+                .transition()
+                .duration(1000)
+                .style("background-color", "blue")
+        });
+</script>
+</body>
+</html>

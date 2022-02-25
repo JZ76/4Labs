@@ -139,7 +139,7 @@
         var myColor2 = d3.scaleSequential()
                          .domain([yExtent[0], yExtent[1]])
                          .interpolator(d3.interpolateViridis);
-        svg.selectAll("dot")
+        svg.selectAll("circle")
             .data(data)
             .enter()
             .append("circle")

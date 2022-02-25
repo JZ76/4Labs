@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>D3 Transitions</title>
+</head>
+<body>
+<script type='text/javascript' src='https://d3js.org/d3.v7.min.js'></script>
+<script>
+    var svg = d3.select("body")
+        .append("svg")
+        .attr("width", 500)
+        .attr("height", 500);
+    var bar1 = svg.append("rect")
+        .attr("fill", "blue")
+        .attr("x", 100)
+        .attr("y", 20)
+        .attr("height", 20)
+        .attr("width", 10)
+    var bar2 = svg.append("rect")
+        .attr("fill", "blue")
+        .attr("x", 120)
+        .attr("y", 20)
+        .attr("height", 20)
+        .attr("width", 10)
+    // exercise 12
+    // copy code from above
+    var bar3 = svg.append("rect")
+        .attr("fill", "blue")
+        .attr("x", 140)
+        .attr("y", 20)
+        .attr("height", 20)
+        .attr("width", 10)
+
+    update();
+    // make transitions as function so that no duplicate code
+    function update() {
+        transitions(bar1,    0, 100, "red")
+        transitions(bar2, 2000, 100, "red")
+        transitions(bar3, 4000, 100, "red")
+        // exercise 13
+        transitions(bar1, 2000, 20, "blue")
+        transitions(bar2, 4000, 20, "blue")
+        transitions(bar3, 6000, 20, "blue")
+    }
+
+    function transitions(bar, delay, height, color) {
+        bar.transition()
+            .ease(d3.easeLinear)
+            .duration(2000)
+            .delay(delay)
+            .attr("height", height)
+            // exercise 14
+            // add color as another argument
+            .style("fill", color)
+    }
+</script>
+</body>
+</html>

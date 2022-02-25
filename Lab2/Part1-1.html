@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CSS Effects/Animations</title>
+</head>
+
+<style>
+    .pulse {
+        /*border: 10px solid;*/
+        /*fill: lightblue;*/
+        /*-webkit-transform: scale(1);*/
+        /*-webkit-transform-origin: 50% 50%;*/
+        /*transform: scale(1);*/
+        /*transform-origin: 20% 20%;*/
+    }
+    .pulse:hover {
+        /*-webkit-animation-name: pulsar;*/
+        /*-webkit-animation-duration: 0.2s;*/
+        /*-webkit-animation-iteration-count: infinite;*/
+        /*-webkit-animation-direction: alternate;*/
+        animation-name: pulses;
+        animation-duration: 0.2s;
+        /*transform: scale(1);*/
+        animation-iteration-count: infinite;
+        animation-direction: alternate;
+        /*-webkit-transform-origin: 50% 50%;*/
+        /*transform-origin: 10% 10%;*/
+    }
+    @keyframes pulses {
+        /*
+            instead shown in the example, I change the r of dots and change back,
+            so it looks like pulsing, rather than change the scale. Because change
+            the scale will also change the scale of the chart which is not what I want
+         */
+        from {
+            fill: red;
+            /* exercise 1 */
+            /*stroke-width: 10px;*/
+            /*stroke: red;*/
+            r: 10;
+        }
+        to {
+            fill: red;
+            /*transform: scale(1);*/
+            /*transform-origin: 90% 90%;*/
+        }
+    }
+</style>
+<!--<svg class='pulse' width='30' height='30'></svg>-->
+<body>
+<script type='text/javascript' src='https://d3js.org/d3.v7.min.js'></script>
+<script>
+    function drawChartOriginal(data) {
+        const xSize = 600;
+        const ySize = 600;
+        const margin = 40;
+        const xMax = xSize - margin * 2;
+        const yMax = ySize - margin * 2;
+
+        const xExtent = d3.extent(data, d => {
+            return d.x
+        });
+        const yExtent = d3.extent(data, d => {
+            return d.y
+        });
+
+        svg = d3.select("body")
+            .append("svg")
+            .attr('width', xSize)
+            .attr('height', ySize)
+            .append("g")
+            .attr("transform", "translate(" + margin + "," + margin + ")");
+
+        svg.append("svg:image")
+            .attr("xlink:href", "https://i.stack.imgur.com/ILTQq.png")
+            .attr("width", 550)
+            .attr("height", 550)
+            .attr("x", 0)
+            .attr("y",0);
+
+        const x = d3.scaleLinear()
+            .domain([xExtent[0], xExtent[1]])
+            .range([0, xMax]);
+
+        svg.append("g")
+            .attr("transform", "translate(0," + yMax + ")")
+            .call(d3.axisBottom(x))
+            .attr('color', 'green');
+
+        svg.append("g")
+            .call(d3.axisTop(x));
+
+        const y = d3.scaleLinear()
+            .domain([yExtent[0], yExtent[1]])
+            .range([yMax, 0]);
+
+        svg.append("g")
+            .call(d3.axisLeft(y));
+
+        svg.append("g")
+            .attr("transform", `translate(${yMax},0)`)
+            .call(d3.axisRight(y));
+
+        svg.append("path")
+            .datum(data)
+            .attr("fill", "none")
+            .attr("stroke", "steelblue")
+            .attr("stroke-width", 1.5)
+            .attr("d", d3.line()
+                .x(function (d) {
+                    return x(d.x);
+                })
+                .y(function (d) {
+                    return y(d.y);
+                }));
+
+        var myColor2 = d3.scaleSequential()
+            .domain([yExtent[0], yExtent[1]])
+            .interpolator(d3.interpolateViridis);
+
+        svg.selectAll("dot")
+            .data(data)
+            .enter()
+            .append("circle")
+            .attr("class", 'pulse')
+            .attr("cx", function (d) {
+                return x(d.x);
+            })
+            .attr("cy", function (d) {
+                return y(d.y);
+            })
+            .attr("r", 5)
+            .style("fill", function (d) {
+                return myColor2(d.y);
+            })
+            ;
+    }
+
+    var data = [];
+    let heartfailurecsv = 'https://raw.githubusercontent.com/akmand/datasets/master/heart_failure.csv';
+    d3.csv(heartfailurecsv).then(function(data) {
+        for (let i = 0; i < data.length; i++) {
+            this.data.push({x : i, y : data[i].age});
+        }
+    }).then(function (){
+        drawChartOriginal(this.data);
+    });
+</script>
+
+
+</body>
+</html>

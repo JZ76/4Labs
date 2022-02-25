@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>D3 Force layout</title>
+</head>
+<body>
+<script type='text/javascript' src='https://d3js.org/d3.v7.min.js'></script>
+<script>
+    // exercise 29
+    var data2 = [];
+    let heartfailurecsv = 'https://raw.githubusercontent.com/akmand/datasets/master/heart_failure.csv';
+    d3.csv(heartfailurecsv).then(function(data) {
+        for (let i = 0; i < data.length; i++) {
+            this.data2.push({radius : data[i].age / 2});
+        }
+    }).then(function () {
+        var width = 1500, height = 1500;
+        // setup svg
+        d3.select('body')
+            .append('svg')
+            .attr('width', width)
+            .attr('height', height);
+
+        // exercise 28
+        var color = d3.scaleOrdinal()
+            .range(d3.schemeSet3);
+        var simulation = d3.forceSimulation(data2)
+            // if this is 0, then it looks like static, if 1, looks dynamic
+            .alphaTarget(1)
+            .force('charge', d3.forceManyBody().strength(-10))
+            .force('center', d3.forceCenter(width / 2, height / 2))
+            .force("r", d3.forceRadial(200, 750, 750).strength(0.01))
+            .force('collision', d3.forceCollide().radius(function (d) {
+                return d.radius
+            }))
+            .on('tick', ticked);
+
+        function ticked() {
+            var u = d3.select('svg')
+                .selectAll('circle')
+                .data(data2)
+                .join('circle')
+                // exercise 30
+                .on("mouseover", onMouseOver)
+                .on("mouseout", onMouseOut)
+                .attr('fill', function (i) {
+                    return color(i);
+                })
+                .attr('r', function (d) {
+                    return d.radius;
+                })
+                .attr('cx', function (d) {
+                    return d.x;
+                })
+                .attr('cy', function (d) {
+                    return d.y;
+                })
+                // this is the way to call drag function
+                .call(d3.drag()
+                    .on("drag", drag)
+                    .on("end", dragEnd));
+
+            function drag(event, d) {
+                d.x = event.x;
+                d.y = event.y;
+                // keep simulation working
+                simulation.restart();
+            }
+
+            function dragEnd(event, d){
+                d.x = event.x;
+                d.y = event.y;
+                simulation.restart();
+            }
+
+            function onMouseOver(d, i) {
+                // exercise 31
+                d3.select(this)
+                    .attr('fill', 'red');
+                d3.select("svg")
+                    .append("text")
+                    .attr('class', 'val')
+                    .attr('x', function() {
+                        return i.x;
+                    })
+                    .attr('y', function() {
+                        return i.y;
+                    })
+                    .attr("dx", "-0.5em")
+                    .attr("dy", "0.5em")
+                    .attr("stroke", "teal")
+                    .text( function(d) {
+                        return i.radius * 2;
+                    });
+            }
+
+            function onMouseOut(d, i) {
+                d3.select(this)
+                    .attr("fill", function (){
+                        return color(i.index)
+                    });
+                d3.selectAll('.val')
+                    .remove();
+            }
+        }
+    });
+</script>
+</body>
+</html>

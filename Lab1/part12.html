@@ -39,7 +39,7 @@
             .range([0, xMax]);
         // bottom
         svg.append("g")
-            .attr("transform", "translate(0," + yMax + ")")
+            .attr("transform", `translate(0,${yMax})`)
             .call(d3.axisBottom(x))
             .attr('color', 'green');
         // make bottom axis green
