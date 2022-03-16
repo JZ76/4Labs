@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="JavaScriptLibraryMappings">
-    <file url="PROJECT" libraries="{d3.v7}" />
+    <file url="PROJECT" libraries="{d3-array, d3-collection, d3-dispatch, d3-request, d3-timer, d3.v7, three, topojson-client}" />
   </component>
 </project>

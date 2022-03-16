@@ -9,5 +9,12 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="d3.v7" level="application" />
+    <orderEntry type="library" name="d3-collection" level="application" />
+    <orderEntry type="library" name="d3-dispatch" level="application" />
+    <orderEntry type="library" name="topojson-client" level="application" />
+    <orderEntry type="library" name="three" level="application" />
+    <orderEntry type="library" name="d3-array" level="application" />
+    <orderEntry type="library" name="d3-timer" level="application" />
+    <orderEntry type="library" name="d3-request" level="application" />
   </component>
 </module>
