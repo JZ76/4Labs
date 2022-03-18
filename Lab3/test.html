@@ -2,97 +2,520 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>geo</title>
+    <title>Covid-19</title>
 </head>
+<style>
+    .bubbles {
+        stroke-width: 2px;
+        stroke: white;
+    }
+    .bubbles:hover {
+        stroke: black;
+    }
+</style>
 <body>
 <script src="https://d3js.org/d3.v7.min.js"></script>
-<svg id="my_dataviz" width="1300" height="800"></svg>
+<button onclick="draw_worldmap(totalCase_per_country); flag_vaxx = false; line_var_attr = 'total_cases'; update_linechart(world_totalCase_per_day);">Before vaxx</button>
+<button onclick="draw_worldmap(totalVaxx_per_country); flag_vaxx = true; line_var_attr = 'total_vaccinations'; update_linechart(world_totalCase_per_day);">After vaxx</button>
+<button onclick="draw_worldmap(totalDeath_per_country); flag_vaxx = true; line_var_attr = 'total_deaths'; update_linechart(world_totalCase_per_day);">Death</button>
+<div id="line_chart"></div>
+<svg id="world_map" width="800" height="600"></svg>
+<div id="bubble_plot"></div>
 <script>
+    // set the dimensions and margins of the graph
+    const margin = {top: 20, right: 20, bottom: 100, left: 100};
+    const width_bubble = 800 - margin.left - margin.right;
+    const height_bubble = 600 - margin.top - margin.bottom;
+
+    const width_line = 1000 - margin.left - margin.right;
+    const height_line = 500 - margin.top - margin.bottom;
 
     // The svg
-    const svg = d3.select("svg"),
+    var svg = d3.select("svg"),
         width = +svg.attr("width"),
         height = +svg.attr("height");
 
     // Map and projection
     const path = d3.geoPath();
     const projection = d3.geoMercator()
-        .scale(200)
+        .scale(110)
         .center([0,20])
         .translate([width / 2, height / 2]);
 
     // Data and color scale
+    var newdata_noOWID;
+    var newdata_OWID;
+    var newdata_world;
+    var group_by_country = new Map();
     var date_to_countries = new Map();
     var totalCase_per_country = new Map();
     var totalDeath_per_country = new Map();
+    var totalVaxx_per_country = new Map();
+    var world_totalCase_per_day = new Map();
+    var countries_date_totalCase = new Map();
+    var countries_GDP_population_totalCase = new Map();
+    var geojson;
+    var colorScale;
+    // global variables
+    var svg_bubble;
+    var map_handle;
+    var bubble_handle;
+    var line_handle;
+    var y_bubble;
+    var x_bubble;
+    var temp_data;
+    var flag_vaxx = false;
+    var line_var_attr = 'total_cases';
 
-    const colorScale = d3.scaleThreshold()
-        .domain([100000, 1000000, 10000000, 30000000, 100000000, 500000000])
-        .range(d3.schemeBlues[7]);
-    //
     // Load external data and boot
     Promise.all([
-        d3.json("/Lab3/custom.geo.json"),
-        d3.csv("https://github.com/owid/covid-19-data/blob/master/public/data/owid-covid-data.csv", function(data) {
-            date_to_countries = d3.group(data, d => d.date, d => d.iso_code)
-            totalCase_per_country = d3.rollups(data, v => d3.sum(v, d => d.new_cases), d => d.iso_code)
-            totalDeath_per_country = d3.rollups(data, v => d3.sum(v, d => d.new_deaths), d => d.iso_code)
-        })])
-        .then(function(loadData) {
-            let topo = loadData[0]
-
-            let mouseOver = function (d) {
-                d3.selectAll(".Country[iso_code=AFG]")
-                    .transition()
-                    .duration(200)
-                    .style("opacity", .5)
-                d3.select(this)
-                    .transition()
-                    .duration(200)
-                    .style("opacity", 10)
-                    .style("stroke", "black")
+        d3.csv("/Lab3/owid-covid-data.csv"),
+        d3.json("/Lab3/custom.geo.json")
+    ]).then(function (data) {
+        // data filtering
+        // this one doesn't have OWID iso code
+        newdata_noOWID = data[0].filter(function (d){
+            return !d.iso_code.match("^OWID");
+        });
+        // this one only has OWID iso code
+        newdata_OWID = data[0].filter(function (d){
+            return d.iso_code.match("^OWID");
+        });
+        // this one only has world data
+        newdata_world = data[0].filter(d => d.iso_code==="OWID_WRL");
+        // this one is for geojson
+        geojson = data[1];
+    }).then(function (){
+        // data preparation
+        group_by_country = d3.group(newdata_noOWID, d => d.iso_code)
+        date_to_countries = d3.group(newdata_noOWID, d => d.date, d => d.iso_code);
+        // rollup not rollups
+        totalCase_per_country = d3.rollup(newdata_noOWID, v => d3.sum(v, d => d.new_cases), d => d.iso_code);
+        totalDeath_per_country = d3.rollup(newdata_noOWID, v => d3.sum(v, d => d.new_deaths), d => d.iso_code);
+        totalVaxx_per_country = d3.rollup(newdata_noOWID, v => d3.sum(v, d => d.new_vaccinations), d => d.iso_code);
+        world_totalCase_per_day = d3.group(newdata_world, d => d.iso_code);
+        countries_GDP_population_totalCase = d3.flatRollup(newdata_noOWID, v => d3.sum(v, d => d.new_cases),
+            d => d.iso_code,
+            d => Number(d.population),
+            d => Number(d.gdp_per_capita),
+            d => d.location);
+        // make data for line chart
+        for (let i = 0; i < newdata_noOWID.length; i++){
+            if (countries_date_totalCase.has(newdata_noOWID[i].iso_code)){
+                countries_date_totalCase.get(newdata_noOWID[i].iso_code).push([newdata_noOWID[i].date, Number(newdata_noOWID[i].total_cases)])
+            }else {
+                countries_date_totalCase.set(newdata_noOWID[i].iso_code, [[newdata_noOWID[i].date, Number(newdata_noOWID[i].total_cases)]])
             }
+        }
 
-            let mouseLeave = function (d) {
-                d3.selectAll(".Country")
-                    .transition()
-                    .duration(200)
-                    .style("opacity", .8)
-                    .style("stroke", "transparent")
-                d3.select(this)
-                    .transition()
-                    .duration(200)
-                    .style("stroke", "transparent")
-            }
+    }).then(function() {
+        // Draw the map only once
+        map_handle = svg.append("g")
+            .selectAll("path")
+            .data(geojson.features)
+            .enter()
+            .append("path")
+            // draw each country
+            .attr("d", d3.geoPath()
+                .projection(projection)
+            )
+            .style("stroke", "transparent")
+            .attr("class", function (d) {
+                return "Country"
+            })
+            // store iso_code for each country
+            .attr("iso_code", function (d){
+                return d.properties.iso_a3;
+            })
+            .style("opacity", 0.8)
+            .on("mouseover", mouseOver_map)
+            .on("mouseleave", mouseLeave_map);
+        // draw three charts
+        draw_bubble(countries_GDP_population_totalCase)
+        draw_worldmap(totalCase_per_country);
+        update_linechart(world_totalCase_per_day)
+    });
 
-            // Draw the map
-            svg.append("g")
-                .selectAll("path")
-                .data(topo.features)
-                .enter()
-                .append("path")
-                // draw each country
-                .attr("d", d3.geoPath()
-                    .projection(projection)
-                )
-                // set the color of each country
-                .attr("fill", function (d) {
-                    d.total = totalCase_per_country.get(d.properties.iso_a3) || 0;
-                    return colorScale(d.total);
-                })
-                .style("stroke", "transparent")
-                .attr("class", function (d) {
-                    return "Country"
-                })
-                .attr("iso_code", function (d){
-                    return d.properties.iso_a3;
-                })
+    /*
+        helper functions
+        mouseevents for each chart and brush
+     */
+    function mouseOver_map() {
+        // shadow all the country first
+        d3.selectAll(".Country")
+            .transition()
+            .duration(200)
+            .style("opacity", .5);
+        // highlight selected country
+        d3.select(this)
+            .transition()
+            .duration(200)
+            .style("opacity", 1)
+            .style("stroke", "black");
+        // draw the response data on the line chart for this country
+        update_linechart(new Map().set(d3.select(this).attr("iso_code"), group_by_country.get(d3.select(this).attr("iso_code"))));
+    }
+
+    function mouseLeave_map() {
+        d3.selectAll(".Country")
+            .transition()
+            .duration(200)
+            .style("opacity", .8)
+            .style("stroke", "transparent");
+        d3.select(this)
+            .transition()
+            .duration(200)
+            .style("stroke", "transparent");
+        // back to world data
+        update_linechart(world_totalCase_per_day);
+    }
+
+    function selection({selection}) {
+        // if there is a rectangle
+        if (selection != null) {
+            extent = selection
+            // store which countries are selected
+            let temp = new Set();
+            temp_data = new Map();
+            bubble_handle.style("opacity", function (d) {
+                // if a bubble in the rectangle, then highlighted
+                if (isBrushed(extent, x_bubble(d[2]), y_bubble(d[4]))){
+                    temp.add(d[0]);
+                    return 1;
+                }else {
+                    return 0.7;
+                }
+            });
+            // update map
+            map_handle.transition()
+                .duration(200)
+                .style("opacity", function (data) {
+                    // if country is selected, highlighted in the map
+                    if (temp.has(data.properties.iso_a3)){
+                        return 1;
+                    }else {
+                        return 0.5;
+                    }
+                }).style("stroke", function (data) {
+                    if (temp.has(data.properties.iso_a3)){
+                        return "black";
+                    }else {
+                        return "transparent";
+                    }
+            });
+            // update the dataset for line chart
+            temp.forEach(value => temp_data.set(value, group_by_country.get(value)));
+        }
+    }
+    function isBrushed(brush_coords, cx, cy) {
+        var x0 = brush_coords[0][0],
+            x1 = brush_coords[1][0],
+            y0 = brush_coords[0][1],
+            y1 = brush_coords[1][1];
+        // This return TRUE or FALSE depending on if the points is in the selected area
+        return x0 <= cx && cx <= x1 && y0 <= cy && cy <= y1;
+    }
+    function clearAll({selection}) {
+        // if the rectangle disappeared
+        if (selection==null){
+            // all charts back to original
+            bubble_handle.style("opacity", 0.7);
+            d3.selectAll(".Country")
+                .transition()
+                .duration(200)
                 .style("opacity", .8)
-                .on("mouseover", mouseOver)
-                .on("mouseleave", mouseLeave);
-
-
+                .style("stroke", "transparent");
+            // d3.selectAll('.lines')
+            //     .remove();
+            update_linechart(world_totalCase_per_day);
+            return;
+        }
+        bubble_handle.style("opacity", function (d) {
+            if (isBrushed(extent, x_bubble(d[2]), y_bubble(d[4]))){
+                return 1;
+            }else {
+                return 0.7;
+            }
+        });
+        // start drawing the selected countries data
+        update_linechart(temp_data);
+    }
+    // bubble single selection
+    function mouseover_bubble(d, i) {
+        d3.select("#bubble_plot")
+            .select("svg")
+            .append("text")
+            .attr('class', 'text_bubble')
+            .attr('x', function () {
+                return x_bubble(i[2])+20;
+            })
+            .attr('y', function () {
+                return y_bubble(i[4])+10;
+            })
+            .text(function () {
+                return i[3]; // Value of the text
+            });
+        d3.select(this)
+            .transition()
+            .duration(200);
+        d3.selectAll(".Country")
+            .transition()
+            .duration(200)
+            .style("opacity", .5);
+        map_handle.transition()
+            .duration(200)
+            .style("opacity", function (data) {
+                if (i[0] === data.properties.iso_a3){
+                    return 1;
+                }else {
+                    return 0.5;
+                }
         })
+            .style("stroke", function (data) {
+            if (i[0] === data.properties.iso_a3){
+                return "black";
+            }else {
+                return "transparent";
+            }
+        });
+
+        update_linechart(new Map().set(i[0], group_by_country.get(i[0])))
+    }
+
+    function mouseleave_bubble() {
+        d3.select(this)
+            .transition()
+            .duration(200);
+        d3.selectAll('.text_bubble')
+            .remove();
+        d3.selectAll(".Country")
+            .transition()
+            .duration(200)
+            .style("opacity", .8)
+            .style("stroke", "transparent");
+
+        update_linechart(world_totalCase_per_day);
+    }
+
+    function draw_worldmap(dataset) {
+        // find the min max value in the dataset which is a hashmap
+        const minmax = d3.extent(dataset.values());
+
+        colorScale = d3.scaleSequential()
+            .domain([1,minmax[1]])
+            .interpolator(d3.interpolateOrRd);
+
+        // set the color of each country
+        svg.selectAll("path")
+            .data(geojson.features)
+            .transition()
+            .duration(1000)
+            .attr("fill", function (d) {
+                // use 0 if data is NaN
+                let temp = dataset.get(d.properties.iso_a3) || 0;
+                return colorScale(temp);
+            });
+    }
+
+    //Read the data
+    function draw_bubble(data) {
+        svg_bubble = d3.select("#bubble_plot")
+            .append("svg")
+            .attr("width", width_bubble + margin.left + margin.right)
+            .attr("height", height_bubble + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform", `translate(${margin.left},${margin.top})`)
+            // Add the brush feature using the d3.brush function
+            .call( d3.brush()
+                .extent([[0,0], [800,600]])
+                .on("brush", selection)
+                .on("end", clearAll)
+            );
+
+        const xExtent = d3.extent(data, d => {
+            return d[2];
+        });
+        const yExtent = d3.extent(data, d => {
+            return d[4];
+        });
+        const zExtent = d3.extent(data, d => {
+            return d[1];
+        });
+        // Add X axis
+        x_bubble = d3.scaleLinear()
+            .domain([xExtent[0], xExtent[1]])
+            .range([ 0, width_bubble ]);
+        svg_bubble.append("g")
+            .attr("transform", `translate(0, ${height_bubble})`)
+            .call(d3.axisBottom(x_bubble));
+
+        // Add Y axis
+        y_bubble = d3.scaleLinear()
+            .domain([yExtent[0], yExtent[1]])
+            .range([ height_bubble, 0]);
+        svg_bubble.append("g")
+            .call(d3.axisLeft(y_bubble));
+
+        // Add a scale for bubble size
+        const z = d3.scaleLinear()
+            .domain([zExtent[0], zExtent[1]])
+            .range([5, 50]);
+
+        // Add a scale for bubble color
+        const myColor = d3.scaleSequential()
+            .domain([zExtent[0], zExtent[1]])
+            .interpolator(d3.interpolatePlasma);
+
+        // Add dots
+        bubble_handle = svg_bubble//.append('g')
+            .selectAll("dot")
+            .data(data)
+            .join("circle")
+            .attr("class", "bubbles")
+            .attr("cx", d => x_bubble(d[2]))
+            .attr("cy", d => y_bubble(d[4]))
+            .attr("r", d => z(d[1]))
+            .style("fill", d => myColor(d[1]))
+            .style("opacity", 0.7)
+            .on("mouseover", mouseover_bubble)
+            .on("mouseleave", mouseleave_bubble);
+    }
+
+    // append the svg object to the body of the page
+    var svg_line = d3.select("#line_chart")
+        .append("svg")
+        .attr("width", width_line + margin.left + margin.right)
+        .attr("height", height_line + margin.top + margin.bottom)
+        .append("g")
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+    // A function that create / update the plot for a given variable:
+    function update_linechart(data) {
+        // a positive infinite number
+        var min_X = d3.timeParse("%Y-%m-%d")("2023-01-01");
+        var min_Y = 0x3f3f3f3f;
+        // a negative infinite number
+        var max_X = d3.timeParse("%Y-%m-%d")("1997-01-01");
+        var max_Y = -0x3f3f3f3f;
+        // find the min max value for X and Y axis
+        data.forEach(function(value, key) {
+            temp = value.length - 1;
+            for (let i = 0; i < temp/2; i++){
+                if (!isNaN(d3.timeParse("%Y-%m-%d")(value[i].date))){
+                    min_X = Math.min(min_X, d3.timeParse("%Y-%m-%d")(value[i].date));
+                }
+            }
+            for (let i = 0; i < temp; i++){
+                if (!isNaN(Number(value[i][line_var_attr]))){
+                    min_Y = Math.min(min_Y, Number(value[i][line_var_attr]));
+                }
+            }
+            for (let i = temp; i >= 0; i--){
+                if (!isNaN(d3.timeParse("%Y-%m-%d")(value[i].date))){
+                    max_X = Math.max(max_X, d3.timeParse("%Y-%m-%d")(value[i].date));
+                }
+            }
+            for (let i = temp; i >= 0; i--){
+                if (!isNaN(Number(value[i][line_var_attr]))){
+                    max_Y = Math.max(max_Y, Number(value[i][line_var_attr]));
+                }
+            }
+        })
+        // delete the axis first
+        d3.selectAll('.myaxis')
+            .remove();
+
+        // X axis
+        var x = d3.scaleTime()
+            .domain([min_X, max_X])
+            .range([0, width_line]);
+        svg_line.append("g")
+            .attr("class", "myaxis")
+            .attr("transform", "translate(0," + height_line + ")")
+            .transition()
+            .duration(1000)
+            .call(d3.axisBottom(x));
+
+        // Add Y axis
+        var y = d3.scaleLinear()
+            .domain([min_Y, max_Y])
+            .range([height_line, 0]);
+        svg_line.append("g")
+            .attr("class", "myaxis")
+            .transition()
+            .duration(1000)
+            .call(d3.axisLeft(y));
+
+        var myColor2 = d3.scaleOrdinal()
+            .domain(data.keys())
+            .range(d3.schemeSet2);
+
+        line_handle = svg_line.selectAll(".lines")
+            .data(data)
+            .join("path")
+            .transition()
+            .duration(1000)
+            .attr("class", "lines")
+            .attr("fill", "none")
+            .attr("stroke-width", 4)
+            .style("stroke", function (d) {
+                return myColor2(d[0]);
+            })
+            .attr("d", function (d){
+                // the d here is the top level key value pair
+                return d3.line()
+                    .x(function (d) {
+                        // the d here is each array in the value
+                        return x(d3.timeParse("%Y-%m-%d")(d.date));
+                    })
+                    .y(function (d) {
+                        return y(Number(d[line_var_attr]));
+                    })(d[1])
+            });
+
+        // make dots transition
+        // var line_circle = svg_line.selectAll("circle")
+        //     .data(data);
+        // line_circle.exit()
+        //     .remove();
+        // line_circle.enter()
+        //     .append("circle")
+        //     .merge(line_circle)
+        //     .on("mouseover", onMouseOver_linechart)
+        //     .on("mouseout", onMouseOut_linechart)
+        //     .transition()
+        //     .duration(1000)
+        //     .attr("cx", function (d) {
+        //         return x(d3.timeParse("%Y-%m-%d")(d[0]))
+        //     })
+        //     .attr("cy", function (d) {
+        //         return y(d[1])
+        //     })
+        //     .attr("r", 0.5)
+        //
+        // function onMouseOver_linechart(d, i) {
+        //     d3.select("g")
+        //         .append("text")
+        //         .attr('class', 'val')
+        //         .attr('x', function() {
+        //             return x(i.x);
+        //         })
+        //         .attr('y', function() {
+        //             return y(i.y);
+        //         })
+        //         .attr("dx", "-0.5em")
+        //         .attr("dy", "-0.5em")
+        //         .attr("stroke", "red")
+        //         .text( function(d) {
+        //             return i.y;
+        //         });
+        // }
+        //
+        // function onMouseOut_linechart(d, i) {
+        //     d3.selectAll('.val')
+        //         .remove();
+        // }
+    }
 
 </script>
 </body>
